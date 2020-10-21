@@ -795,6 +795,8 @@ push!(y, overall_efficient)
 
 
 #=-----------Plot Graph-------------------=#
+
+# create the x label from 0% to 100%
 createGraph(map((i)->"$((i-1)*10)%",1:11), y, "Overall infection",
     ["social distancing" "facial mask" "intervention 2 3 4" "all intervention"],
     "time", 
