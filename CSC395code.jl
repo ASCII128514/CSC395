@@ -5,7 +5,6 @@ using LightGraphs
 using StatsBase
 using Distributions
 using GraphPlot
-using TikzPictures
 
 # Create a network that have 98 nodes, represents the "spaces" of a shopping mall
 G = Graph(98)
@@ -290,7 +289,7 @@ function generateEmployeeAndCustomer(e,c,p,intervarr)
     for i in 1:e
         #each employee have 0.05% chance of already been infected by COVID-19
         isInfected = rand(1:10000)<6
-        #if they are already indected then they've exposed to either 3-15 days, otherwise 
+        #if they are already indected then they've exposed to either 3-20 days, otherwise 
         #they've not been exposed and expose will be set to 1
         expose = isInfected ? rand(3:20) : 1
         #creating the employee, and set interventions based on intervarr, if intervarr[i] is false, then the corresponding 
@@ -303,7 +302,7 @@ function generateEmployeeAndCustomer(e,c,p,intervarr)
     for i in 1:c
         #each customer have 0.05% chance of already been infected by COVID-19
         isInfected = rand(1:10000)<6
-        #if they are already indected then they've exposed to either 3-15 days, otherwise 
+        #if they are already indected then they've exposed to either 3-20 days, otherwise 
         #they've not been exposed and expose will be set to 1
         expose = isInfected ? rand(3:20) : 1
         #creating the customer, and set interventions based on intervarr, if intervarr[i] is false, then the corresponding 
@@ -446,14 +445,12 @@ function simulate(employeeNum,customerNum,prob,interventions)
     end
     resDaily=[]
     resTotalInfection = []
-    for iter in 1:40
     #Generate people with all fields filled 
     people=generatePeople(employeeNum,customerNum,prob,interventions)
     #Initialized totalInfection to as an array
     totalInfection = []
     #Set total to be 0
     total = 0
-    #totalPeople = employeeNum
     #Initialized totalInfection to as an array
     daily=[]
     #For each of the 30 days
@@ -539,7 +536,6 @@ function simulate(employeeNum,customerNum,prob,interventions)
             end
         end
 
-        #totalPeople+=customerNum
         #For each of the customer
         for i in employeeNum+1:employeeNum+customerNum
             #If they are infected
@@ -564,24 +560,52 @@ function simulate(employeeNum,customerNum,prob,interventions)
         #append the dailyInfected into daily array
         push!(daily,dailyInfected)
     end
-    if iter == 1
-        resDaily=daily
-        resTotalInfection = totalInfection
-    else
-        ind=1
-        for val in daily
-            resDaily[ind]+=val
-            ind+=1
-        end
-        ind=1
-        for val in totalInfection
-            resTotalInfection[ind]+=val
-            ind+=1
-        end
-    end
-    end
     #return the 2D array that contains both daily array and totalInfection array
-    return [resDaily./40,resTotalInfection./40]
+    return [daily,totalInfection]
+end
+
+#=
+procedure:
+    simulateNtimes
+purpose:
+    simulate the agent-base modeling using the parameters to see the daily infection number and total infection 
+    number over 30 days for n times to get the average
+parameters:
+    n, integer
+    employeeNum, an integer
+    customerNum, an integer
+    prob, an float
+    interventions, an array of boolean
+produce:
+    result, an 2D array
+precondition:
+    n>0; 0<prob<1; length(interventions)==3;
+postcondition:
+    length(result[1])==30; length(result[2])==30
+=#
+
+function simulateNtimes(n,employeeNum,customerNum,prob,interventions)
+    daily=[]
+    overall=[]
+    for i in 1:n
+        res = simulate(employeeNum,customerNum,prob,interventions)
+        if i == 1
+            daily = res[1]
+            overall = res[2]
+        else
+            j = 1
+            for val in res[1]
+                daily[j]+=val
+                j+=1
+            end
+            j=1
+            for val in res[2]
+                overall[j]+=val
+                j+=1
+            end
+        end
+    end
+    return [daily./n,overall./n]
 end
 
 #=
@@ -601,8 +625,7 @@ produce:
     (void)png file with the name fn
 =#
 function createGraph(x, y, title, label, xlabel, ylabel,fn)
-    plot(x, y, title = title, label=["no intervention" "social distancing" "facial mask" "temperature measurement" "limit number of costomers" "Intervention 2,3,4"])
-    # scatter!(x,daily, label=["no intervention" "social distancing" "facial mask" "temperature measurement" "limit number of costomers" "Intervention 2,3,4"])
+    plot(x, y, title = title, label=label)
     xlabel!(xlabel)
     ylabel!(ylabel)
     png(fn) # save the current fig as png with filename fn
@@ -617,9 +640,7 @@ employeeNum=1000
 #9000 customer in the mall each day.
 customerNum=9000
 
-#Setting up the 2D array for places
-
-res = simulate(employeeNum,customerNum,1,[false,false,false])
+res = simulateNtimes(40, employeeNum,customerNum,1,[false,false,false])
 
 daily = []
 overall = []
@@ -634,12 +655,7 @@ employeeNum=1000
 #9000 customer in the mall each day.
 customerNum=9000
 
-#Setting the 2D array for places
-# places=[]
-# for i in 1:98
-#     push!(places, [])
-# end
-res = simulate(employeeNum,customerNum,1,[true,false,false])
+res = simulateNtimes(40, employeeNum,customerNum,1,[true,false,false])
 
 push!(daily,res[1])
 push!(overall, res[2]);
@@ -653,12 +669,7 @@ employeeNum=1000
 #9000 customer in the mall each day.
 customerNum=9000
 
-#Setting the 2D array for places
-# places=[]
-# for i in 1:98
-#     push!(places, [])
-# end
-res = simulate(employeeNum,customerNum,1,[false,true,false])
+res = simulateNtimes(40,employeeNum,customerNum,1,[false,true,false])
 
 push!(daily,res[1])
 push!(overall, res[2]);
@@ -671,12 +682,7 @@ employeeNum=1000
 #9000 customer in the mall each day.
 customerNum=9000
 
-#Setting the 2D array for places
-# places=[]
-# for i in 1:98
-#     push!(places, [])
-# end
-res = simulate(employeeNum,customerNum,1,[false,false,true])
+res = simulateNtimes(40,employeeNum,customerNum,1,[false,false,true])
 push!(daily,res[1])
 push!(overall, res[2]);
 
@@ -688,12 +694,7 @@ employeeNum=500
 #4500 customer in the mall each day.
 customerNum=4500
 
-#Setting the 2D array for places
-# places=[]
-# for i in 1:98
-#     push!(places, [])
-# end
-res = simulate(employeeNum,customerNum,1,[false,false,false])
+res = simulateNtimes(40,employeeNum,customerNum,1,[false,false,false])
 
 push!(daily,res[1])
 push!(overall, res[2]);
@@ -705,12 +706,7 @@ employeeNum=500
 #4500 customer in the mall each day.
 customerNum=4500
 
-#Setting the 2D array for places
-# places=[]
-# for i in 1:98
-#     push!(places, [])
-# end
-res = simulate(employeeNum,customerNum,1,[false,true,true])
+res = simulateNtimes(40,employeeNum,customerNum,1,[false,true,true])
 
 push!(daily,res[1])
 push!(overall, res[2]);
@@ -742,13 +738,12 @@ for p in 1:11
     # 9000 customer in the mall each day.
     customerNum=9000
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulate(employeeNum,customerNum,(p-1)/10,[true,false,false])[2][30])
+    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,false,false])[2][30])
 end
 
 y = []
 x = map((i)->"$((i-1)*10)%",1:11)
 push!(y, overall_efficient)
-println(overall_efficient[length(overall_efficient)])
 
 #=-----------------------Facial mask--------------------=#
 overall_efficient = []
@@ -760,7 +755,7 @@ for p in 1:11
     # 9000 customer in the mall each day.
     customerNum=9000
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulate(employeeNum,customerNum,(p-1)/10,[false,true,false])[2][30])
+    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,false])[2][30])
 end
 
 push!(y, overall_efficient)
@@ -777,7 +772,7 @@ for p in 1:11
     customerNum=4500
 
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulate(employeeNum,customerNum,(p-1)/10,[false,true,true])[2][30])
+    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,true])[2][30])
 end
 
 push!(y, overall_efficient)
@@ -793,7 +788,7 @@ for p in 1:11
     customerNum=4500
 
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulate(employeeNum,customerNum,(p-1)/10,[true,true,true])[2][30])
+    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,true,true])[2][30])
 end
 
 push!(y, overall_efficient)
