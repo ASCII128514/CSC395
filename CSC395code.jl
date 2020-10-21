@@ -738,7 +738,7 @@ for p in 1:11
     # 9000 customer in the mall each day.
     customerNum=9000
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,false,false])[2][30])
+    push!(overall_efficient,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,false,false])[2][30])
 end
 
 y = []
@@ -755,7 +755,7 @@ for p in 1:11
     # 9000 customer in the mall each day.
     customerNum=9000
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,false])[2][30])
+    push!(overall_efficient,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,false])[2][30])
 end
 
 push!(y, overall_efficient)
@@ -772,7 +772,7 @@ for p in 1:11
     customerNum=4500
 
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,true])[2][30])
+    push!(overall_efficient,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[false,true,true])[2][30])
 end
 
 push!(y, overall_efficient)
@@ -788,7 +788,7 @@ for p in 1:11
     customerNum=4500
 
     #Append the total infection number after 30 days into the overall array for each probabilites
-    push!(overall,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,true,true])[2][30])
+    push!(overall_efficient,simulateNtimes(10,employeeNum,customerNum,(p-1)/10,[true,true,true])[2][30])
 end
 
 push!(y, overall_efficient)
